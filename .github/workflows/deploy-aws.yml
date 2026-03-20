@@ -1,0 +1,115 @@
+name: Deploy Ecom App to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      EC2_HOST: ${{ vars.EC2_HOST }}
+      EC2_SSH_USER: ${{ vars.EC2_SSH_USER }}
+      APP_CONTAINER_NAME: ${{ vars.APP_CONTAINER_NAME }}
+      APP_ENV_FILE: ${{ vars.APP_ENV_FILE }}
+      APP_STORAGE_PATH: ${{ vars.APP_STORAGE_PATH }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo_mysql, sqlite3
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Prepare CI environment
+        run: |
+          cp .env.example .env
+          touch database/database.sqlite
+
+      - name: Install Composer dependencies for tests
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run automated tests
+        run: php artisan test
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_ENV"
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_URI: ${{ env.IMAGE_URI }}
+          APP_CONTAINER_NAME: ${{ env.APP_CONTAINER_NAME }}
+          APP_ENV_FILE: ${{ env.APP_ENV_FILE }}
+          APP_STORAGE_PATH: ${{ env.APP_STORAGE_PATH }}
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_SSH_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          envs: AWS_REGION,ECR_REGISTRY,ECR_REPOSITORY,IMAGE_URI,APP_CONTAINER_NAME,APP_ENV_FILE,APP_STORAGE_PATH
+          script_stop: true
+          script: |
+            aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+            mkdir -p "$(dirname "$APP_ENV_FILE")" "$APP_STORAGE_PATH"
+            test -f "$APP_ENV_FILE"
+            docker pull "$IMAGE_URI"
+            docker rm -f "$APP_CONTAINER_NAME" || true
+            docker run -d \
+              --name "$APP_CONTAINER_NAME" \
+              --restart unless-stopped \
+              -p 80:80 \
+              --env-file "$APP_ENV_FILE" \
+              -v "$APP_STORAGE_PATH:/var/www/html/storage" \
+              "$IMAGE_URI"
+            docker exec "$APP_CONTAINER_NAME" php artisan storage:link --force
+            docker exec "$APP_CONTAINER_NAME" php artisan migrate --force
+            docker exec "$APP_CONTAINER_NAME" php artisan optimize:clear
+            docker exec "$APP_CONTAINER_NAME" php artisan config:cache
