@@ -22,6 +22,7 @@ jobs:
       ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
       ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
       APP_CONTAINER_NAME: ${{ secrets.APP_CONTAINER_NAME }}
+      TASK_DEFINITION_NAME: ${{ secrets.TASK_DEFINITION_NAME }}
 
     steps:
       - name: Checkout code
@@ -82,7 +83,7 @@ jobs:
       - name: Download current ECS task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ env.APP_CONTAINER_NAME }} \
+            --task-definition ${{ env.TASK_DEFINITION_NAME }} \
             --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
