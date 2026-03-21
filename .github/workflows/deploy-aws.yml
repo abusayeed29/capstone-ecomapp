@@ -18,10 +18,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-      ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-      ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
-      APP_CONTAINER_NAME: ${{ vars.APP_CONTAINER_NAME }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+      APP_CONTAINER_NAME: ${{ secrets.APP_CONTAINER_NAME }}
 
     steps:
       - name: Checkout code
