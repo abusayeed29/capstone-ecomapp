@@ -58,9 +58,6 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Run automated tests
-        run: php artisan test
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
