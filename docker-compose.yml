@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: group2-ecomapp
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: group2-ecomapp-worker
+    command: ["/usr/local/bin/worker.sh"]
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      - app
