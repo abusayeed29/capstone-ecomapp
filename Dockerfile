@@ -1,9 +1,29 @@
 # -----------------------------
 # Stage 1: PHP dependencies
 # -----------------------------
-FROM composer:2 AS vendor
+FROM php:8.2-cli AS vendor
 
 WORKDIR /app
+
+# Install system packages and PHP extensions needed by composer dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    unzip \
+    zip \
+    libzip-dev \
+    libicu-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install intl pdo pdo_mysql mbstring zip exif pcntl gd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
@@ -33,40 +53,41 @@ FROM php:8.2-apache
 
 WORKDIR /var/www/html
 
-# Install PHP extensions + system deps
+# Install PHP extensions + system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     unzip \
     zip \
     libzip-dev \
+    libicu-dev \
     libpng-dev \
-    libjpeg-dev \
+    libjpeg62-turbo-dev \
     libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
     default-mysql-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl gd \
+    && docker-php-ext-install intl pdo pdo_mysql mbstring zip exif pcntl gd \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Apache to Laravel public
+# Set Apache document root to Laravel public/
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf \
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Copy app
+# Copy application source
 COPY . /var/www/html
 
-# Copy dependencies
+# Copy vendor dependencies from vendor stage
 COPY --from=vendor /app/vendor /var/www/html/vendor
 
-# Copy built frontend
+# Copy built frontend assets
 COPY --from=frontend /app/public/build /var/www/html/public/build
 
-# Copy scripts
+# Copy startup scripts
 COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/worker.sh /usr/local/bin/worker.sh
 
