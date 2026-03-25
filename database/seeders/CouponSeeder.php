@@ -47,22 +47,21 @@ class CouponSeeder extends Seeder
         ];
 
         foreach ($coupons as $coupon) {
-            Coupon::create([
-                'code' => $coupon['code'],
-                'type' => $coupon['type'],
-                'value' => $coupon['value'],
-                'minimum_order_value' => $coupon['minimum_order_value'] ?? null,
-                'maximum_discount' => $coupon['maximum_discount'] ?? null,
-                'usage_limit' => $coupon['usage_limit'] ?? null,
-                'usage_limit_per_customer' => 1,
-                'starts_at' => now(),
-                'expires_at' => $coupon['expires_at'],
-                'is_active' => true,
-            ]);
+            Coupon::updateOrCreate(
+                ['code' => $coupon['code']],
+                [
+                    'type' => $coupon['type'],
+                    'value' => $coupon['value'],
+                    'minimum_order_value' => $coupon['minimum_order_value'] ?? null,
+                    'maximum_discount' => $coupon['maximum_discount'] ?? null,
+                    'usage_limit' => $coupon['usage_limit'] ?? null,
+                    'usage_limit_per_customer' => 1,
+                    'starts_at' => now(),
+                    'expires_at' => $coupon['expires_at'],
+                    'is_active' => true,
+                ],
+            );
         }
-
-        // Create 10 more random coupons
-        Coupon::factory()->count(10)->create();
 
         $this->command->info('Coupons created successfully!');
     }

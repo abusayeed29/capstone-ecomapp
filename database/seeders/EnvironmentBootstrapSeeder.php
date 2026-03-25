@@ -2,27 +2,23 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class DatabaseSeeder extends Seeder
+class EnvironmentBootstrapSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Seed deterministic baseline data for a brand-new environment.
+     *
+     * This seeder is intended for one-time bootstrap jobs in deployed
+     * environments, so it avoids random factory/demo data.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         $this->call([
             UserSeeder::class,
             CategorySeeder::class,
             BrandSeeder::class,
-            ProductSeeder::class,
-            CustomerSeeder::class,
             CouponSeeder::class,
-            RandomCouponSeeder::class,
             SettingSeeder::class,
         ]);
     }
