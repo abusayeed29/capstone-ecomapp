@@ -5,7 +5,6 @@ FROM php:8.2-cli AS vendor
 
 WORKDIR /app
 
-# Install system packages and PHP extensions needed by composer dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -22,7 +21,6 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install intl pdo pdo_mysql mbstring zip exif pcntl gd \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
@@ -43,6 +41,10 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+# bring vendor folder so Vite can resolve Flux CSS
+COPY --from=vendor /app/vendor /app/vendor
+
 RUN npm run build
 
 
@@ -53,7 +55,6 @@ FROM php:8.2-apache
 
 WORKDIR /var/www/html
 
-# Install PHP extensions + system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -72,22 +73,15 @@ RUN apt-get update && apt-get install -y \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Apache document root to Laravel public/
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf \
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Copy application source
 COPY . /var/www/html
-
-# Copy vendor dependencies from vendor stage
 COPY --from=vendor /app/vendor /var/www/html/vendor
-
-# Copy built frontend assets
 COPY --from=frontend /app/public/build /var/www/html/public/build
 
-# Copy startup scripts
 COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/worker.sh /usr/local/bin/worker.sh
 
