@@ -29,7 +29,7 @@ wait_for_mysql() {
     sleep 2
   done
 
-  echo "MySQL TCP is reachable."
+  echo "MySQL TCP is reachable.."
 }
 
 wait_for_mysql
