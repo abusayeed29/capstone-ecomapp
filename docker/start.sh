@@ -7,28 +7,29 @@ echo "Starting Laravel App..."
 
 DB_HOST="${DB_HOST:-mysql}"
 DB_PORT="${DB_PORT:-3306}"
+DB_DATABASE="${DB_DATABASE:-}"
 DB_USERNAME="${DB_USERNAME:-root}"
 DB_PASSWORD="${DB_PASSWORD:-root123}"
-DB_WAIT_TIMEOUT="${DB_WAIT_TIMEOUT:-120}"
+DB_WAIT_TIMEOUT="${DB_WAIT_TIMEOUT:-300}"
 
 wait_for_mysql() {
   local waited=0
 
-  echo "Waiting for MySQL at ${DB_HOST}:${DB_PORT} for up to ${DB_WAIT_TIMEOUT}s..."
+  echo "Resolving DB host: ${DB_HOST}"
+  getent hosts "${DB_HOST}" || true
 
-  until mysqladmin ping \
-    -h"${DB_HOST}" \
-    -P"${DB_PORT}" \
-    -u"${DB_USERNAME}" \
-    -p"${DB_PASSWORD}" \
-    --silent; do
+  echo "Waiting for MySQL TCP at ${DB_HOST}:${DB_PORT} for up to ${DB_WAIT_TIMEOUT}s..."
+
+  until timeout 2 bash -c "</dev/tcp/${DB_HOST}/${DB_PORT}" 2>/dev/null; do
     waited=$((waited + 2))
     if [ "${waited}" -ge "${DB_WAIT_TIMEOUT}" ]; then
-      echo "MySQL did not become reachable within ${DB_WAIT_TIMEOUT}s."
+      echo "MySQL TCP port did not become reachable within ${DB_WAIT_TIMEOUT}s."
       exit 1
     fi
     sleep 2
   done
+
+  echo "MySQL TCP is reachable."
 }
 
 wait_for_mysql
@@ -47,7 +48,7 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Fix permissions
+echo "Fixing permissions..."
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
