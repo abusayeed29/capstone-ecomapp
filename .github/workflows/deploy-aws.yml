@@ -1,4 +1,4 @@
-name: Deploy Ecom App to AWS EC2
+name: Deploy Ecom App to AWS ECS
 
 on:
   push:
