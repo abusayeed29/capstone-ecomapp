@@ -5,7 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class UserSeeder extends Seeder
 {
@@ -14,8 +15,12 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $superAdminRole = Role::findOrCreate('super_admin', 'web');
+
         // Create admin user
-        User::updateOrCreate(
+        $primaryAdmin = User::updateOrCreate(
             ['email' => 'newadmin@example.com'],
             [
                 'name' => 'New Admin User',
@@ -27,7 +32,7 @@ class UserSeeder extends Seeder
         );
 
         // Create additional admin users
-        User::updateOrCreate(
+        $secondaryAdmin = User::updateOrCreate(
             ['email' => 'john@example.com'],
             [
                 'name' => 'John Doe',
@@ -38,6 +43,9 @@ class UserSeeder extends Seeder
             ],
         );
 
-        $this->command->info('Admin users created successfully!');
+        $primaryAdmin->syncRoles([$superAdminRole]);
+        $secondaryAdmin->syncRoles([$superAdminRole]);
+
+        $this->command->info('Admin users created successfully with super_admin access.');
     }
 }
