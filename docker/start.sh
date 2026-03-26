@@ -45,6 +45,9 @@ php artisan storage:link || true
 echo "Running pending migrations..."
 php artisan migrate --force
 
+echo "Running user seeder..."
+php artisan db:seed --class=Database\\Seeders\\UserSeeder --force
+
 echo "Clearing Laravel caches..."
 php artisan optimize:clear || true
 
