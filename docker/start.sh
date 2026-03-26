@@ -34,8 +34,10 @@ wait_for_mysql() {
 
 wait_for_mysql
 
-echo "Clearing Laravel caches..."
-php artisan optimize:clear
+echo "Fixing permissions..."
+mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 echo "Ensuring storage link exists..."
 php artisan storage:link || true
@@ -43,14 +45,17 @@ php artisan storage:link || true
 echo "Running pending migrations..."
 php artisan migrate --force
 
-echo "Caching Laravel config/routes/views..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+echo "Clearing Laravel caches..."
+php artisan optimize:clear || true
 
-echo "Fixing permissions..."
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+echo "Caching Laravel config..."
+php artisan config:cache
+
+echo "Caching Laravel routes..."
+php artisan route:cache || true
+
+echo "Caching Laravel views..."
+php artisan view:cache
 
 echo "Starting Apache..."
 exec apache2-foreground
