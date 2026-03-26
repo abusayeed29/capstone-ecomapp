@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -18,6 +19,7 @@ class UserSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $superAdminRole = Role::findOrCreate('super_admin', 'web');
+        $superAdminRole->syncPermissions(Permission::pluck('id')->all());
 
         // Create admin user
         $primaryAdmin = User::updateOrCreate(
@@ -45,6 +47,8 @@ class UserSeeder extends Seeder
 
         $primaryAdmin->syncRoles([$superAdminRole]);
         $secondaryAdmin->syncRoles([$superAdminRole]);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $this->command->info('Admin users created successfully with super_admin access.');
     }
