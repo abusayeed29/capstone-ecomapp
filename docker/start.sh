@@ -45,17 +45,17 @@ php artisan storage:link || true
 echo "Running pending migrations..."
 php artisan migrate --force
 
-echo "Running Database seeder... "
-php artisan db:seed --force
+# echo "Running Database seeder... "
+# php artisan db:seed --force
 
-# echo "Running user seeder..."
-# php artisan db:seed --class=Database\\Seeders\\UserSeeder --force
+echo "Running user seeder..."
+php artisan db:seed --class=Database\\Seeders\\UserSeeder --force
 
-# echo "Running brand seeder..."
-# php artisan db:seed --class=Database\\Seeders\\BrandSeeder --force
+echo "Running brand seeder..."
+php artisan db:seed --class=Database\\Seeders\\BrandSeeder --force
 
-# echo "Running category seeder..."
-# php artisan db:seed --class=Database\\Seeders\\CategorySeeder --force
+echo "Running category seeder..."
+php artisan db:seed --class=Database\\Seeders\\CategorySeeder --force
 
 # echo "Running customer seeder..."
 # php artisan db:seed --class=Database\\Seeders\\CustomerSeeder --force
