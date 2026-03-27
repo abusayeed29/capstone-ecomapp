@@ -30,7 +30,7 @@
                                 <div class="flex-shrink-0">
                                     <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
                                         @if($item['image'])
-                                            <img src="{{ asset('storage/' . $item['image']) }}" 
+                                            <img src="{{ $item['image'] }}" 
                                                  alt="{{ $item['name'] }}"
                                                  class="w-full h-full object-cover">
                                         @else

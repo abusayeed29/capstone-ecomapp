@@ -22,7 +22,10 @@ class CategoryForm
                     ->default(null)
                     ->columnSpanFull(),
                 FileUpload::make('image')
-                    ->image(),
+                    ->image()
+                    ->disk('s3')
+                    ->directory('categories')
+                    ->visibility('public'),
                 Toggle::make('is_active')
                     ->required(),
                 TextInput::make('sort_order')
