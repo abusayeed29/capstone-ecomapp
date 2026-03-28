@@ -21,11 +21,7 @@ class CategoriesTable
                 TextColumn::make('slug')
                     ->searchable(),
                 ImageColumn::make('image')
-<<<<<<< HEAD
                     ->disk('public'),
-=======
-                    ->disk('s3'),
->>>>>>> origin/main
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('sort_order')
