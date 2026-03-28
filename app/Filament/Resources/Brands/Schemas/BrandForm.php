@@ -33,7 +33,7 @@ class BrandForm
                         FileUpload::make('logo')
                             ->image()
                             ->directory('brands')
-                            ->disk('s3')
+                            ->disk('public')
                             ->visibility('public')
                             ->maxSize(2048)
                             ->imageEditor()

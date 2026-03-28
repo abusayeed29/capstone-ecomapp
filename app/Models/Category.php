@@ -48,7 +48,7 @@ class Category extends Model
             return $this->image;
         }
 
-        return Storage::disk('s3')->url($this->image);
+        return Storage::disk('public')->url($this->image);
     }
 
     protected static function boot(){
