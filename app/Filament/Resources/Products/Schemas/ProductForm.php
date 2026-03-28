@@ -155,7 +155,11 @@ class ProductForm
                                             ->label('Product Images')
                                             ->multiple()
                                             ->image()
+<<<<<<< HEAD
+                                            ->disk('public')
+=======
                                             ->disk('s3')
+>>>>>>> origin/main
                                             ->directory('products')
                                             ->visibility('public')
                                             ->imageEditor()

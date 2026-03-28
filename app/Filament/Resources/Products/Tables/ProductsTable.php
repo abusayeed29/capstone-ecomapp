@@ -21,7 +21,11 @@ class ProductsTable
             ->columns([
                 ImageColumn::make('primaryImage.image_path')
                     ->label('Image')
+<<<<<<< HEAD
+                    ->disk('public')
+=======
                     ->disk('s3')
+>>>>>>> origin/main
                     ->circular()
                     ->defaultImageUrl(url('/images/placeholder.jpg')),
                 TextColumn::make('name')

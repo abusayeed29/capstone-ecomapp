@@ -45,8 +45,8 @@ php artisan storage:link || true
 echo "Running pending migrations..."
 php artisan migrate --force
 
-# echo "Generating Filament Shield permissions..."
-# php artisan shield:generate --all --panel=admin --option=permissions
+echo "Generating Filament Shield permissions..."
+php artisan shield:generate --all --panel=admin --option=permissions
 
 # echo "Running Database seeder... "
 # php artisan db:seed --force
