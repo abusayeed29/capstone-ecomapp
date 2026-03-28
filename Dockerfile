@@ -86,8 +86,11 @@ COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/worker.sh /usr/local/bin/worker.sh
 
 RUN chmod +x /usr/local/bin/start.sh /usr/local/bin/worker.sh \
+    && mkdir -p /var/www/html/storage/app/public /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+VOLUME ["/var/www/html/storage/app/public"]
 
 EXPOSE 80
 

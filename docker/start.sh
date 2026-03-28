@@ -35,7 +35,10 @@ wait_for_mysql() {
 wait_for_mysql
 
 echo "Fixing permissions..."
-mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
+mkdir -p /var/www/html/storage/app/public/products \
+  /var/www/html/storage/app/public/categories \
+  /var/www/html/storage/app/public/brands \
+  /var/www/html/bootstrap/cache
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 

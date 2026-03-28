@@ -18,6 +18,8 @@ services:
     depends_on:
       - mysql
       - redis
+    volumes:
+      - app_storage:/var/www/html/storage/app/public
     restart: unless-stopped
 
   worker:
@@ -38,6 +40,8 @@ services:
     depends_on:
       - mysql
       - redis
+    volumes:
+      - app_storage:/var/www/html/storage/app/public
     restart: unless-stopped
 
   mysql:
@@ -56,4 +60,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  app_storage:
   mysql_data:
