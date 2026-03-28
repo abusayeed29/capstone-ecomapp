@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Stripe\Stripe;
 use App\Models\Order;
+use App\Mail\OrderConfirmation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Checkout\Session as StripeSession;
 
 class CheckoutController extends Controller
@@ -27,6 +29,15 @@ class CheckoutController extends Controller
                         'payment_status' => 'paid',
                         'status' => 'processing',
                     ]);
+
+                    try {
+                        Mail::to($order->customer->email)->send(new OrderConfirmation($order));
+                    } catch (\Exception $e) {
+                        logger()->error('Order confirmation email failed: ' . $e->getMessage(), [
+                            'order_id' => $order->id,
+                            'customer_email' => $order->customer->email,
+                        ]);
+                    }
 
                     // Clear cart
                     session()->forget('cart');
