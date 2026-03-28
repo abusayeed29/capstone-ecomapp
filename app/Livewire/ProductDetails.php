@@ -22,7 +22,7 @@ class ProductDetails extends Component
         $this->product->incrementViews();
 
         // set the initial image 
-        $this->selectedImage = $this->product->primaryImage?->image_path ?? $this->product->images->first()?->image_path;
+        $this->selectedImage = $this->product->primaryImage?->url ?? $this->product->images->first()?->url;
 
         // select first variant if product has variants
         if ($this->product->has_variants && $this->product->variants->isNotEmpty()) {
@@ -33,8 +33,8 @@ class ProductDetails extends Component
     public function selectVariant($variantId){
         $this->selectedVariant = $variantId;
     }
-    public function selectImage($imagePath){
-        $this->selectedImage = $imagePath;
+    public function selectImage($imageUrl){
+        $this->selectedImage = $imageUrl;
     }
 
     public function incrementQuantity()

@@ -23,7 +23,11 @@ class CategoryForm
                     ->columnSpanFull(),
                 FileUpload::make('image')
                     ->image()
+<<<<<<< HEAD
                     ->disk('public')
+=======
+                    ->disk('s3')
+>>>>>>> origin/main
                     ->directory('categories')
                     ->visibility('public'),
                 Toggle::make('is_active')

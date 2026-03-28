@@ -3,7 +3,7 @@
         <!-- Product Image -->
         <div class="aspect-square overflow-hidden bg-gray-200">
             @if($product->primaryImage)
-                <img src="{{ asset('storage/' . $product->primaryImage->image_path) }}" 
+                <img src="{{ $product->primaryImage->url }}" 
                      alt="{{ $product->name }}"
                      class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
             @else
