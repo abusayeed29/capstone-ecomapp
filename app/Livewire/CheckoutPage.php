@@ -196,15 +196,12 @@ class CheckoutPage extends Component
 
             DB::commit();
 
-            //send order confirmation
-            Mail::to($order->customer->email)
-            ->queue(new OrderConfirmation($order));
-
             //proccessing the payment
             if ($this->paymentMethod === 'stripe') {
                 return $this->processStripePayment($order);
             } else {
                 // Cash on delivery
+                $this->sendOrderConfirmation($order);
                 session()->forget('cart');
                 return redirect()->route('customer.orders.show', $order->id)
                     ->with('success', 'Order placed successfully!');
@@ -215,6 +212,18 @@ class CheckoutPage extends Component
             DB::rollBack();
             session()->flash('error','Error placing order: '. $e->getMessage());
             return;
+        }
+    }
+
+    protected function sendOrderConfirmation(Order $order): void
+    {
+        try {
+            Mail::to($order->customer->email)->send(new OrderConfirmation($order));
+        } catch (\Exception $e) {
+            logger()->error('Order confirmation email failed: ' . $e->getMessage(), [
+                'order_id' => $order->id,
+                'customer_email' => $order->customer->email,
+            ]);
         }
     }
 
