@@ -51,20 +51,20 @@ php artisan migrate --force
 echo "Generating Filament Shield permissions..."
 php artisan shield:generate --all --panel=admin --option=permissions
 
-# echo "Running Database seeder... "
-# php artisan db:seed --force
+echo "Running Database seeder... "
+php artisan db:seed --force
 
-# echo "Running user seeder..."
-# php artisan db:seed --class=Database\\Seeders\\UserSeeder --force
+echo "Running user seeder..."
+php artisan db:seed --class=Database\\Seeders\\UserSeeder --force
 
-# echo "Running brand seeder..."
-# php artisan db:seed --class=Database\\Seeders\\BrandSeeder --force
+echo "Running brand seeder..."
+php artisan db:seed --class=Database\\Seeders\\BrandSeeder --force
 
-# echo "Running category seeder..."
-# php artisan db:seed --class=Database\\Seeders\\CategorySeeder --force
+echo "Running category seeder..."
+php artisan db:seed --class=Database\\Seeders\\CategorySeeder --force
 
-# echo "Running customer seeder..."
-# php artisan db:seed --class=Database\\Seeders\\CustomerSeeder --force
+echo "Running customer seeder..."
+php artisan db:seed --class=Database\\Seeders\\CustomerSeeder --force
 
 # echo "Running coupon seeder..."
 # php artisan db:seed --class=Database\\Seeders\\CouponSeeder --force
@@ -84,8 +84,8 @@ php artisan shield:generate --all --panel=admin --option=permissions
 # echo "Running setting seeder..."
 # php artisan db:seed --class=Database\\Seeders\\SettingSeeder --force
 
-# echo "Running Filament"
-# php artisan make:filament-resource Category --generate
+echo "Running Filament"
+php artisan make:filament-resource Category --generate
 
 echo "Clearing Laravel caches..."
 php artisan optimize:clear || true
