@@ -20,7 +20,11 @@ until timeout 2 bash -c "</dev/tcp/${DB_HOST}/${DB_PORT}" 2>/dev/null; do
   sleep 2
 done
 
-echo "MySQL is reachable. Starting worker..."
+echo "MySQL is reachable. Caching config..."
+php artisan config:cache
+php artisan route:cache || true
+
+echo "Starting worker..."
 
 while true; do
   php artisan queue:work \
