@@ -56,6 +56,6 @@ class ProductImage extends Model
             return $this->image_path;
         }
 
-        return Storage::disk('public')->url($this->image_path);
+        return Storage::disk(config('filesystems.default'))->url($this->image_path);
     }
 }

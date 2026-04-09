@@ -48,7 +48,7 @@ class Category extends Model
             return $this->image;
         }
 
-        return Storage::disk('public')->url($this->image);
+        return Storage::disk(config('filesystems.default'))->url($this->image);
     }
 
     protected static function boot(){

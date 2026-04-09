@@ -21,7 +21,7 @@ class BrandsTable
                 TextColumn::make('slug')
                     ->searchable(),
                 ImageColumn::make('logo')
-                    ->disk('public')
+                    ->disk('s3')
                     ->circular(),
                 TextColumn::make('website')
                     ->searchable(),
