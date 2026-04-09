@@ -93,6 +93,10 @@
                                         </label>
                                     @endforeach
                                 </div>
+
+                                @error('selectedAddressId')
+                                    <p class="text-sm text-red-600 mb-6">{{ $message }}</p>
+                                @enderror
                             @endif
                         @endif
 
