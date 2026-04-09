@@ -274,14 +274,7 @@ class CheckoutPage extends Component
 
     protected function sendOrderConfirmation(Order $order): void
     {
-        try {
-            Mail::to($order->customer->email)->send(new OrderConfirmation($order));
-        } catch (\Exception $e) {
-            logger()->error('Order confirmation email failed: ' . $e->getMessage(), [
-                'order_id' => $order->id,
-                'customer_email' => $order->customer->email,
-            ]);
-        }
+        Mail::to($order->customer->email)->queue(new OrderConfirmation($order));
     }
 
     protected function processStripePayment($order){
