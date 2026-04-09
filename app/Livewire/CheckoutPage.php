@@ -12,6 +12,7 @@ use App\Models\OrderItem;
 use App\Mail\OrderConfirmation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use Stripe\Checkout\Session as StripeSession;
 
 class CheckoutPage extends Component
@@ -48,9 +49,12 @@ class CheckoutPage extends Component
         $this->full_name = $customer->name;
         $this->phone = $customer->phone ?? '';
 
-        // Load default address if exists
-        $defaultAddress = $customer->addresses()->where('is_default', true)->first();
-        if ($defaultAddress) {
+        // If customer has no saved addresses, switch to new address form
+        if (!$customer->addresses()->exists()) {
+            $this->useExistingAddress = false;
+        } else {
+            $defaultAddress = $customer->addresses()->where('is_default', true)->first()
+                ?? $customer->addresses()->first();
             $this->selectedAddressId = $defaultAddress->id;
         }
     }
@@ -104,17 +108,21 @@ class CheckoutPage extends Component
 
     protected function validateAddress()
     {
-        if (!$this->useExistingAddress) {
+        $hasAddresses = auth('customer')->user()->addresses()->exists();
+
+        if (!$this->useExistingAddress || !$hasAddresses) {
             $this->validate([
-                'full_name' => 'required|string|max:255',
-                'phone' => 'required|string|max:255',
-                'address_line_1' => 'required|string|max:255',
-                'city' => 'required|string|max:255',
-                'postal_code' => 'required|string|max:20',
-                'country' => 'required|string|max:2',
+                'full_name'       => 'required|string|max:255',
+                'phone'           => 'required|string|max:255',
+                'address_line_1'  => 'required|string|max:255',
+                'city'            => 'required|string|max:255',
+                'postal_code'     => 'required|string|max:20',
+                'country'         => 'required|string|max:2',
             ]);
         } elseif (!$this->selectedAddressId) {
-            throw new \Exception('Please select an address');
+            throw ValidationException::withMessages([
+                'selectedAddressId' => 'Please select an address.',
+            ]);
         }
     }
 
