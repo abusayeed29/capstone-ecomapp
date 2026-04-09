@@ -12,6 +12,7 @@ use App\Models\OrderItem;
 use App\Mail\OrderConfirmation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use Stripe\Checkout\Session as StripeSession;
 
 class CheckoutPage extends Component
@@ -113,17 +114,37 @@ class CheckoutPage extends Component
                 'postal_code' => 'required|string|max:20',
                 'country' => 'required|string|max:2',
             ]);
-        } elseif (!$this->selectedAddressId) {
-            throw new \Exception('Please select an address');
+            return;
+        }
+
+        $customer = auth('customer')->user();
+
+        if (!$this->selectedAddressId) {
+            throw ValidationException::withMessages([
+                'selectedAddressId' => 'Please select an address.',
+            ]);
+        }
+
+        $addressExists = $customer->addresses()
+            ->whereKey($this->selectedAddressId)
+            ->exists();
+
+        if (!$addressExists) {
+            throw ValidationException::withMessages([
+                'selectedAddressId' => 'The selected address is invalid.',
+            ]);
         }
     }
 
     public function placeOrder(){
         try {
             DB::beginTransaction();
+            $this->validateAddress();
             // Get shipping address
             if ($this->useExistingAddress && $this->selectedAddressId) {
-                $address = Address::find($this->selectedAddressId);
+                $address = auth('customer')->user()
+                    ->addresses()
+                    ->findOrFail($this->selectedAddressId);
                 $shippingData = [
                     'shipping_full_name' => $address->full_name,
                     'shipping_phone' => $address->phone,
