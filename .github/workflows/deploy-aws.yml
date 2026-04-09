@@ -45,6 +45,7 @@ jobs:
       - name: Prepare CI environment
         run: |
           cp .env.example .env
+          echo "FILESYSTEM_DISK=public" >> .env
           touch database/database.sqlite
 
       - name: Install Composer dependencies for tests

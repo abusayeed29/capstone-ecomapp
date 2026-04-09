@@ -23,9 +23,9 @@ class CategoryForm
                     ->columnSpanFull(),
                 FileUpload::make('image')
                     ->image()
-                    ->disk('public')
+                    ->disk('s3')
                     ->directory('categories')
-                    ->visibility('public'),
+                    ,
                 Toggle::make('is_active')
                     ->required(),
                 TextInput::make('sort_order')

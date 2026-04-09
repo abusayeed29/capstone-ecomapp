@@ -36,7 +36,7 @@
                         <img
                             src="{{ asset('cloudcart-logo.png') }}"
                             alt="CloudCart"
-                            class="h-16 w-auto max-w-[320px] object-contain"
+                            class="h-12 w-auto max-w-[280px] object-contain"
                         >
                     </a>
                 </div>
