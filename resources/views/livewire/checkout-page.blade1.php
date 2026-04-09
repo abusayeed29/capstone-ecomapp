@@ -93,6 +93,10 @@
                                         </label>
                                     @endforeach
                                 </div>
+
+                                @error('selectedAddressId')
+                                    <p class="text-sm text-red-600 mb-6">{{ $message }}</p>
+                                @enderror
                             @endif
                         @endif
 
@@ -193,7 +197,7 @@
                                 <div class="flex gap-4 pb-4 border-b">
                                     <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                                         @if($item['image'])
-                                            <img src="{{ asset('storage/' . $item['image']) }}" 
+                                            <img src="{{ $item['image'] }}" 
                                                  alt="{{ $item['name'] }}"
                                                  class="w-full h-full object-cover">
                                         @endif

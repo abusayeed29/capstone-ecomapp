@@ -12,6 +12,7 @@ use App\Models\OrderItem;
 use App\Mail\OrderConfirmation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use Stripe\Checkout\Session as StripeSession;
 
 class CheckoutPage extends Component
@@ -58,6 +59,16 @@ class CheckoutPage extends Component
     public function selectAddress($addressId)
     {
         $this->selectedAddressId = $addressId;
+        $this->resetValidation('selectedAddressId');
+    }
+
+    public function updatedUseExistingAddress($value): void
+    {
+        if (!$value) {
+            $this->selectedAddressId = null;
+        }
+
+        $this->resetValidation('selectedAddressId');
     }
     public function applyCoupon()
     {
@@ -104,7 +115,7 @@ class CheckoutPage extends Component
 
     protected function validateAddress()
     {
-        if (!$this->useExistingAddress) {
+        if ($this->shouldUseNewAddress()) {
             $this->validate([
                 'full_name' => 'required|string|max:255',
                 'phone' => 'required|string|max:255',
@@ -113,17 +124,63 @@ class CheckoutPage extends Component
                 'postal_code' => 'required|string|max:20',
                 'country' => 'required|string|max:2',
             ]);
-        } elseif (!$this->selectedAddressId) {
-            throw new \Exception('Please select an address');
+            return;
         }
+
+        $customer = auth('customer')->user();
+
+        if (!$this->selectedAddressId) {
+            throw ValidationException::withMessages([
+                'selectedAddressId' => 'Please select an address.',
+            ]);
+        }
+
+        $addressExists = $customer->addresses()
+            ->whereKey($this->selectedAddressId)
+            ->exists();
+
+        if (!$addressExists) {
+            throw ValidationException::withMessages([
+                'selectedAddressId' => 'The selected address is invalid.',
+            ]);
+        }
+    }
+
+    protected function shouldUseNewAddress(): bool
+    {
+        $customer = auth('customer')->user();
+
+        if (!$this->useExistingAddress || !$customer->addresses()->exists()) {
+            return true;
+        }
+
+        if (!$this->selectedAddressId && $this->hasEnteredNewAddress()) {
+            $this->useExistingAddress = false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function hasEnteredNewAddress(): bool
+    {
+        return filled($this->full_name)
+            || filled($this->phone)
+            || filled($this->address_line_1)
+            || filled($this->city)
+            || filled($this->postal_code);
     }
 
     public function placeOrder(){
         try {
             DB::beginTransaction();
+            $this->validateAddress();
             // Get shipping address
             if ($this->useExistingAddress && $this->selectedAddressId) {
-                $address = Address::find($this->selectedAddressId);
+                $address = auth('customer')->user()
+                    ->addresses()
+                    ->findOrFail($this->selectedAddressId);
                 $shippingData = [
                     'shipping_full_name' => $address->full_name,
                     'shipping_phone' => $address->phone,
@@ -196,15 +253,12 @@ class CheckoutPage extends Component
 
             DB::commit();
 
-            //send order confirmation
-            Mail::to($order->customer->email)
-            ->queue(new OrderConfirmation($order));
-
             //proccessing the payment
             if ($this->paymentMethod === 'stripe') {
                 return $this->processStripePayment($order);
             } else {
                 // Cash on delivery
+                $this->sendOrderConfirmation($order);
                 session()->forget('cart');
                 return redirect()->route('customer.orders.show', $order->id)
                     ->with('success', 'Order placed successfully!');
@@ -216,6 +270,11 @@ class CheckoutPage extends Component
             session()->flash('error','Error placing order: '. $e->getMessage());
             return;
         }
+    }
+
+    protected function sendOrderConfirmation(Order $order): void
+    {
+        Mail::to($order->customer->email)->queue(new OrderConfirmation($order));
     }
 
     protected function processStripePayment($order){

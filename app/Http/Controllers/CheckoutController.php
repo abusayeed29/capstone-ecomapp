@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Stripe\Stripe;
 use App\Models\Order;
 use App\Mail\OrderConfirmation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use Stripe\Checkout\Session as StripeSession;
 
 class CheckoutController extends Controller
 {
@@ -17,28 +15,29 @@ class CheckoutController extends Controller
         ->with(['items.product.primaryImage', 'customer'])
         ->firstOrFail();
 
-        // Verify Stripe payment if session_id exists
-        if ($request->has('session_id')) {
-            Stripe::setApiKey(config('services.stripe.secret'));
-            
-            try {
-                $session = StripeSession::retrieve($request->session_id);
-                
-                if ($session->payment_status === 'paid' && $order->payment_status !== 'paid') {
-                    $order->update([
-                        'payment_status' => 'paid',
-                        'status' => 'processing',
-                    ]);
+        // Avoid blocking the success page on an outbound Stripe API call.
+        // We trust the redirect only when the returned session matches the order transaction id.
+        if ($request->filled('session_id') && $order->payment_status !== 'paid') {
+            if ($request->string('session_id')->value() === $order->transaction_id) {
+                $order->update([
+                    'payment_status' => 'paid',
+                    'status' => 'processing',
+                ]);
 
-                    Mail::to($order->customer->email)->queue(new OrderConfirmation($order));
+                dispatch(function () use ($order) {
+                    Mail::to($order->customer->email)->send(new OrderConfirmation($order));
+                })->afterResponse();
 
-                    // Clear cart
-                    session()->forget('cart');
-                }
-            } catch (\Exception $e) {
-                logger()->error('Stripe session verification failed: ' . $e->getMessage());
+                session()->forget('cart');
+            } else {
+                logger()->warning('Stripe success session did not match order transaction id.', [
+                    'order_id' => $order->id,
+                    'request_session_id' => $request->string('session_id')->value(),
+                    'order_transaction_id' => $order->transaction_id,
+                ]);
             }
         }
+
         return view('checkout.success', compact('order'));
     }
 
