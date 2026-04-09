@@ -7,18 +7,11 @@ echo "Starting Queue Worker..."
 
 DB_HOST="${DB_HOST:-mysql}"
 DB_PORT="${DB_PORT:-3306}"
-DB_USERNAME="${DB_USERNAME:-root}"
-DB_PASSWORD="${DB_PASSWORD:-root123}"
-DB_WAIT_TIMEOUT="${DB_WAIT_TIMEOUT:-120}"
+DB_WAIT_TIMEOUT="${DB_WAIT_TIMEOUT:-300}"
 
-echo "Waiting for MySQL at ${DB_HOST}:${DB_PORT} before starting queue worker..."
+echo "Waiting for MySQL TCP at ${DB_HOST}:${DB_PORT}..."
 waited=0
-until mysqladmin ping \
-  -h"${DB_HOST}" \
-  -P"${DB_PORT}" \
-  -u"${DB_USERNAME}" \
-  -p"${DB_PASSWORD}" \
-  --silent; do
+until timeout 2 bash -c "</dev/tcp/${DB_HOST}/${DB_PORT}" 2>/dev/null; do
   waited=$((waited + 2))
   if [ "${waited}" -ge "${DB_WAIT_TIMEOUT}" ]; then
     echo "MySQL did not become reachable within ${DB_WAIT_TIMEOUT}s."
@@ -27,8 +20,14 @@ until mysqladmin ping \
   sleep 2
 done
 
+echo "MySQL is reachable. Starting worker..."
+
 while true; do
-  php artisan queue:work --tries=3 --timeout=90
-  echo "Worker crashed. Restarting in 5 seconds..."
+  php artisan queue:work \
+    --tries=3 \
+    --timeout=60 \
+    --sleep=3 \
+    --max-time=3600
+  echo "Worker stopped. Restarting in 5 seconds..."
   sleep 5
 done
