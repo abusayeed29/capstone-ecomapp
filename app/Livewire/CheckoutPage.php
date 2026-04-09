@@ -59,6 +59,16 @@ class CheckoutPage extends Component
     public function selectAddress($addressId)
     {
         $this->selectedAddressId = $addressId;
+        $this->resetValidation('selectedAddressId');
+    }
+
+    public function updatedUseExistingAddress($value): void
+    {
+        if (!$value) {
+            $this->selectedAddressId = null;
+        }
+
+        $this->resetValidation('selectedAddressId');
     }
     public function applyCoupon()
     {
@@ -105,7 +115,7 @@ class CheckoutPage extends Component
 
     protected function validateAddress()
     {
-        if (!$this->useExistingAddress) {
+        if ($this->shouldUseNewAddress()) {
             $this->validate([
                 'full_name' => 'required|string|max:255',
                 'phone' => 'required|string|max:255',
@@ -134,6 +144,32 @@ class CheckoutPage extends Component
                 'selectedAddressId' => 'The selected address is invalid.',
             ]);
         }
+    }
+
+    protected function shouldUseNewAddress(): bool
+    {
+        $customer = auth('customer')->user();
+
+        if (!$this->useExistingAddress || !$customer->addresses()->exists()) {
+            return true;
+        }
+
+        if (!$this->selectedAddressId && $this->hasEnteredNewAddress()) {
+            $this->useExistingAddress = false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function hasEnteredNewAddress(): bool
+    {
+        return filled($this->full_name)
+            || filled($this->phone)
+            || filled($this->address_line_1)
+            || filled($this->city)
+            || filled($this->postal_code);
     }
 
     public function placeOrder(){
