@@ -32,8 +32,12 @@
             <div class="flex items-center justify-between py-4">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <a href="{{ route('home') }}" class="text-2xl font-bold text-blue-600">
-                        {{ config('app.name', 'E-Commerce') }}
+                    <a href="{{ route('home') }}" class="flex items-center" aria-label="CloudCart home">
+                        <img
+                            src="{{ asset('cloudcart-logo.png') }}"
+                            alt="CloudCart"
+                            class="h-16 w-auto max-w-[320px] object-contain"
+                        >
                     </a>
                 </div>
 
