@@ -158,7 +158,7 @@ class Order extends Model
                 $order->statusHistories()->create([
                     'status'  => $order->status,
                     'notes'   => $order->_statusNotes ?? 'Status updated to ' . ucfirst($order->status),
-                    'user_id' => $order->_statusUserId ?? auth()->id() ?? null,
+                    'user_id' => $order->_statusUserId ?? auth('web')->id() ?? null,
                 ]);
             }
         });
