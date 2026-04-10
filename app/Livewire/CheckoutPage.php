@@ -256,22 +256,7 @@ class CheckoutPage extends Component
             ];
         }
 
-        // Add discount
-        if ($order->discount_amount > 0) {
-            $lineItems[] = [
-                'price_data' => [
-                    'currency' => 'usd',
-                    'product_data' => [
-                        'name' => 'Discount',
-                    ],
-                    'unit_amount' => -($order->discount_amount * 100),
-                ],
-                'quantity' => 1,
-            ];
-
-        }
-
-        $session = StripeSession::create([
+        $sessionParams = [
             'payment_method_types' => ['card'],
             'line_items' => $lineItems,
             'mode' => 'payment',
@@ -281,7 +266,19 @@ class CheckoutPage extends Component
             'metadata' => [
                 'order_id' => $order->id,
             ],
-        ]);
+        ];
+
+        if ($order->discount_amount > 0) {
+            $coupon = \Stripe\Coupon::create([
+                'amount_off' => (int) round($order->discount_amount * 100),
+                'currency'   => 'usd',
+                'duration'   => 'once',
+                'name'       => 'Discount',
+            ]);
+            $sessionParams['discounts'] = [['coupon' => $coupon->id]];
+        }
+
+        $session = StripeSession::create($sessionParams);
 
         $order->update(['transaction_id' => $session->id]);
 
