@@ -157,14 +157,21 @@ class ProductForm
                                             ->image()
                                             ->disk('s3')
                                             ->directory('products')
-                                            
                                             ->imageEditor()
                                             ->maxSize(2048)
                                             ->reorderable()
                                             ->columnSpanFull()
                                             ->helperText('You can drag and drop to reorder images')
+                                            ->afterStateHydrated(function ($component, $record) {
+                                                if ($record) {
+                                                    $paths = $record->images()
+                                                        ->orderBy('sort_order')
+                                                        ->pluck('image_path')
+                                                        ->toArray();
+                                                    $component->state($paths);
+                                                }
+                                            })
                                             ->saveRelationshipsUsing(function ($component, $state, $record) {
-                                                // delete exisiting images
                                                 $record->images()->delete();
 
                                                 if (is_array($state)) {
@@ -172,7 +179,7 @@ class ProductForm
                                                         $record->images()->create([
                                                             'image_path' => $imagePath,
                                                             'is_primary' => $index === 0,
-                                                            'sort_order' => $index
+                                                            'sort_order' => $index,
                                                         ]);
                                                     }
                                                 }
