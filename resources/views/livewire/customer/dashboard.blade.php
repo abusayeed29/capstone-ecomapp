@@ -152,7 +152,7 @@
                                             @if($item->product)
                                                 <div class="w-12 h-12 rounded bg-gray-100 overflow-hidden">
                                                     @if($item->product->primaryImage)
-                                                        <img src="{{ asset('storage/' . $item->product->primaryImage->image_path) }}" 
+                                                        <img src="{{ $item->product->primaryImage?->url }}" 
                                                              alt="{{ $item->product_name }}"
                                                              class="w-full h-full object-cover">
                                                     @endif
