@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -47,6 +48,14 @@ class ProductImage extends Model
     // Helper Methods
     public function getUrlAttribute()
     {
-        return asset('storage/' . $this->image_path);
+        if (blank($this->image_path)) {
+            return null;
+        }
+
+        if (filter_var($this->image_path, FILTER_VALIDATE_URL)) {
+            return $this->image_path;
+        }
+
+        return Storage::disk(config('filesystems.default'))->url($this->image_path);
     }
 }

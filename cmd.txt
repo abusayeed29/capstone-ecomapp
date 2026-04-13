@@ -40,3 +40,116 @@ passkey:onmc hcyf fblu ojsu
 ykbd zxmv ecdz xruf
 
 
+docker exec -it group2-ecomapp-mysql mysql -u root -p
+
+
+
+
+.................filment issues
+1. No Filament Resource files exist
+
+You only see Dashboard when resources like these are missing:
+
+app/Filament/Resources/CategoryResource.php
+app/Filament/Resources/ProductResource.php
+app/Filament/Resources/OrderResource.php
+app/Filament/Resources/CustomerResource.php
+2. Resources exist, but are hidden by Shield permissions
+
+Since you are using Shield, the user may not have permission to view those resources.
+
+3. Resources were created locally but not pushed to GitHub / not deployed to EC2
+
+Very common.
+
+4. Resources are in the wrong panel or wrong namespace
+
+If this project uses Filament v4, panel config matters.
+
+First check these files on EC2
+
+Run:
+
+find app/Filament -type f
+
+You should see resource files.
+
+Also check specifically:
+
+find app/Filament/Resources -type f
+
+If this folder is empty or missing, that is why only Dashboard shows.
+
+If resources do not exist
+
+Then you need to generate them locally or on EC2.
+
+Examples:
+
+docker exec -it group2-ecomapp php artisan make:filament-resource Category --generate
+docker exec -it group2-ecomapp php artisan make:filament-resource Product --generate
+docker exec -it group2-ecomapp php artisan make:filament-resource Order --generate
+docker exec -it group2-ecomapp php artisan make:filament-resource Customer --generate
+
+After that clear cache:
+
+docker exec -it group2-ecomapp php artisan optimize:clear
+
+Then refresh /admin.
+
+If resources already exist
+
+Then it is likely a permissions issue.
+
+Run:
+
+docker exec -it group2-ecomapp php artisan shield:generate --all
+docker exec -it group2-ecomapp php artisan shield:super-admin
+
+Then sign out and sign in again.
+
+If the current user is not the super admin, create a fresh one and log in with that.
+
+Also check panel provider
+
+Look for this file:
+
+app/Providers/Filament/AdminPanelProvider.php
+
+Open it and confirm it has resource discovery, something like:
+
+->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+
+If resource discovery is missing, resources won’t appear.
+
+Best order to fix
+
+Run these one by one:
+
+find app/Filament/Resources -type f
+docker exec -it group2-ecomapp php artisan optimize:clear
+docker exec -it group2-ecomapp php artisan shield:generate --all
+docker exec -it group2-ecomapp php artisan shield:super-admin
+
+If app/Filament/Resources is empty, generate resources first.
+
+Why dashboard works but pages do not
+
+Dashboard is built into the panel, but Categories, Products, Orders, Users, and similar menu items come from Filament Resource classes. No resource class = no menu item.
+
+Quick answer
+
+You do need admin resources for those pages. If they are missing, run commands like:
+
+php artisan make:filament-resource Category --generate
+
+But only for resources that do not already exist.
+
+Run this and send me the output:
+
+find app/Filament -type f
+
+That will show exactly why the pages are missing.
+
+New start 

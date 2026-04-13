@@ -126,13 +126,15 @@ class Order extends Model
 
     public function updateStatus($newStatus, $notes = null, $userId = null)
     {
+        // Temporarily store custom notes/user so the updated listener can use them
+        $this->_statusNotes  = $notes;
+        $this->_statusUserId = $userId ?? auth()->id();
+
         $this->update(['status' => $newStatus]);
 
-        $this->statusHistories()->create([
-            'status' => $newStatus,
-            'notes' => $notes,
-            'user_id' => $userId,
-        ]);
+        // Clear after save
+        $this->_statusNotes  = null;
+        $this->_statusUserId = null;
     }
 
     protected static function boot(){
@@ -149,7 +151,16 @@ class Order extends Model
                 'status' => $order->status,
                 'notes' => 'Order created'
             ]);
-            //order confirmation email
+        });
+
+        static::updated(function($order){
+            if ($order->wasChanged('status')) {
+                $order->statusHistories()->create([
+                    'status'  => $order->status,
+                    'notes'   => $order->_statusNotes ?? 'Status updated to ' . ucfirst($order->status),
+                    'user_id' => $order->_statusUserId ?? auth('web')->id() ?? null,
+                ]);
+            }
         });
     }
 

@@ -155,7 +155,9 @@ class ProductForm
                                             ->label('Product Images')
                                             ->multiple()
                                             ->image()
+                                            ->disk('s3')
                                             ->directory('products')
+                                            
                                             ->imageEditor()
                                             ->maxSize(2048)
                                             ->reorderable()

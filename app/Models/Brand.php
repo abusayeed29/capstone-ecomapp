@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -28,6 +29,19 @@ class Brand extends Model
     #[Scope()]
     protected function sorted(Builder $builder){
         $builder->orderBy('sort_order','asc');
+    }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (blank($this->logo)) {
+            return null;
+        }
+
+        if (filter_var($this->logo, FILTER_VALIDATE_URL)) {
+            return $this->logo;
+        }
+
+        return Storage::disk(config('filesystems.default'))->url($this->logo);
     }
 
     //relationship

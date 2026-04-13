@@ -11,6 +11,30 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+    --color-blue-50: #f5edff;
+    --color-blue-100: #eadbff;
+    --color-blue-200: #d5b8ff;
+    --color-blue-300: #bd8cff;
+    --color-blue-400: #a968ff;
+    --color-blue-500: #9a52ff;
+    --color-blue-600: #8a34ff;
+    --color-blue-700: #7821e6;
+    --color-blue-800: #651bbf;
+    --color-blue-900: #531899;
+    --color-blue-950: #36105f;
+
+    --color-indigo-50: #f5edff;
+    --color-indigo-100: #eadbff;
+    --color-indigo-200: #d5b8ff;
+    --color-indigo-300: #bd8cff;
+    --color-indigo-400: #a968ff;
+    --color-indigo-500: #9a52ff;
+    --color-indigo-600: #8a34ff;
+    --color-indigo-700: #7821e6;
+    --color-indigo-800: #651bbf;
+    --color-indigo-900: #531899;
+    --color-indigo-950: #36105f;
+
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
     --color-zinc-200: #e5e5e5;
@@ -23,16 +47,16 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: var(--color-blue-500);
+    --color-accent-content: var(--color-blue-500);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-blue-400);
+        --color-accent-content: var(--color-blue-400);
+        --color-accent-foreground: var(--color-white);
     }
 }
 

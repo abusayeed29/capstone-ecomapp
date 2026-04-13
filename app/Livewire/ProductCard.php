@@ -29,7 +29,7 @@ class ProductCard extends Component
                  'name' => $this->product->name,
                  'variant_name' => null,
                  'price' => $this->product->price,
-                 'image' => $this->product->primaryImage?->image_path,
+                 'image' => $this->product->primaryImage?->url,
                  'quantity' => 1,
              ];
          }
